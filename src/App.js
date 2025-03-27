@@ -1,5 +1,5 @@
 import { ThemeProvider } from "styled-components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { darkTheme } from "./utils/Themes.js";
 import Navbar from "./components/Navbar";
 import "./App.css";
@@ -16,6 +16,12 @@ import { HashRouter } from "react-router-dom";
 import StarCanvas from "./components/canvas/Stars";
 import { AnimatePresence } from "framer-motion";
 import { SkeletonTheme } from "react-loading-skeleton";
+import {
+  fetchSkillsData,
+  fetchExperiences,
+  fetchEducation,
+  fetchProjects,
+} from "./data/SupabaseData";
 
 const Body = styled.div`
   background-color: ${({ theme }) => theme.bg};
@@ -42,6 +48,42 @@ const Wrapper = styled.div`
 
 function App() {
   const [openModal, setOpenModal] = useState({ state: false, project: null });
+  const [skills, setSkills] = useState([]);
+  const [experiences, setExperiences] = useState([]);
+  const [education, setEducation] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [skillsData, experiencesData, educationData, projectsData] =
+        await Promise.all([
+          fetchSkillsData(),
+          fetchExperiences(),
+          fetchEducation(),
+          fetchProjects(),
+        ]);
+
+      setSkills(skillsData.data || []);
+      setExperiences(experiencesData.data || []);
+      setEducation(educationData.data || []);
+      setProjects(projectsData.data || []);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <ThemeProvider theme={darkTheme}>
+        <SkeletonTheme baseColor="#202020" highlightColor="#444">
+          <div>Loading...</div>
+        </SkeletonTheme>
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider theme={darkTheme}>
       <SkeletonTheme baseColor="#202020" highlightColor="#444">
@@ -52,15 +94,21 @@ function App() {
             <AnimatePresence>
               <div>
                 <HeroSectionSection />
-                <Wrapper>
-                  <Skills />
-                  <Experience />
-                </Wrapper>
-                <Projects openModal={openModal} setOpenModal={setOpenModal} />
-                <Wrapper>
-                  <Education />
-                  <Contact />
-                </Wrapper>
+                {(skills.length > 0 || experiences.length > 0) && (
+                  <Wrapper>
+                    {skills.length > 0 && <Skills />}
+                    {experiences.length > 0 && <Experience />}
+                  </Wrapper>
+                )}
+                {projects.length > 0 && (
+                  <Projects openModal={openModal} setOpenModal={setOpenModal} />
+                )}
+                {education.length > 0 && (
+                  <Wrapper>
+                    {education.length > 0 && <Education />}
+                    <Contact />
+                  </Wrapper>
+                )}
                 <Footer />
 
                 {openModal.state && (

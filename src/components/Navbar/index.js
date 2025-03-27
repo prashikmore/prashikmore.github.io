@@ -16,12 +16,19 @@ import {
 import { FaBars } from "react-icons/fa";
 import { Close, CloseRounded } from "@mui/icons-material";
 import { useTheme } from "styled-components";
-import { fetchBioData } from "../../api/supabase";
+import {
+  fetchBioData,
+  fetchSkillsData,
+  fetchExperiences,
+  fetchEducation,
+  fetchProjects,
+} from "../../api/supabase";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [bioData, setBioData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sections, setSections] = useState({});
   const theme = useTheme();
 
   useEffect(() => {
@@ -38,8 +45,35 @@ const Navbar = () => {
         setLoading(false);
       }
     };
+
+    // Check which sections have data
+    const checkSections = async () => {
+      const [skills, experiences, education, projects] = await Promise.all([
+        fetchSkillsData(),
+        fetchExperiences(),
+        fetchEducation(),
+        fetchProjects(),
+      ]);
+
+      setSections({
+        skills: (skills.data || []).length > 0,
+        experience: (experiences.data || []).length > 0,
+        education: (education.data || []).length > 0,
+        projects: (projects.data || []).length > 0,
+      });
+    };
+
     getBioData();
+    checkSections();
   }, []);
+
+  const navLinks = [
+    { id: "about", label: "About", alwaysShow: true },
+    { id: "skills", label: "Skills", show: sections.skills },
+    { id: "experience", label: "Experience", show: sections.experience },
+    { id: "projects", label: "Projects", show: sections.projects },
+    { id: "education", label: "Education", show: sections.education },
+  ];
 
   return (
     <Nav>
@@ -53,11 +87,14 @@ const Navbar = () => {
           <FaBars onClick={() => setIsOpen(!isOpen)} />
         </MobileIcon>
         <NavItems>
-          <NavLink href="#about">About</NavLink>
-          <NavLink href="#skills">Skills</NavLink>
-          <NavLink href="#experience">Experience</NavLink>
-          <NavLink href="#projects">Projects</NavLink>
-          <NavLink href="#education">Education</NavLink>
+          {navLinks.map(
+            (link) =>
+              (link.alwaysShow || link.show) && (
+                <NavLink key={link.id} href={`#${link.id}`}>
+                  {link.label}
+                </NavLink>
+              )
+          )}
         </NavItems>
         <ButtonContainer>
           <GitHubButton
@@ -71,21 +108,18 @@ const Navbar = () => {
         </ButtonContainer>
         {isOpen && (
           <MobileMenu isOpen={isOpen}>
-            <MobileLink href="#about" onClick={() => setIsOpen(false)}>
-              About
-            </MobileLink>
-            <MobileLink href="#skills" onClick={() => setIsOpen(false)}>
-              Skills
-            </MobileLink>
-            <MobileLink href="#experience" onClick={() => setIsOpen(false)}>
-              Experience
-            </MobileLink>
-            <MobileLink href="#projects" onClick={() => setIsOpen(false)}>
-              Projects
-            </MobileLink>
-            <MobileLink href="#education" onClick={() => setIsOpen(false)}>
-              Education
-            </MobileLink>
+            {navLinks.map(
+              (link) =>
+                (link.alwaysShow || link.show) && (
+                  <MobileLink
+                    key={link.id}
+                    href={`#${link.id}`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.label}
+                  </MobileLink>
+                )
+            )}
             <GitHubButton
               style={{
                 padding: "10px 16px",
