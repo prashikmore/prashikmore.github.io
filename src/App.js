@@ -22,6 +22,8 @@ import {
   fetchEducation,
   fetchProjects,
 } from "./data/SupabaseData";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const Body = styled.div`
   background-color: ${({ theme }) => theme.bg};
@@ -44,6 +46,24 @@ const Wrapper = styled.div`
     );
   width: 100%;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 30% 98%, 0 100%);
+`;
+
+const LoadingContainer = styled.div`
+  width: 100%;
+  min-height: 100vh;
+  background-color: ${({ theme }) => theme.bg};
+  display: flex;
+  flex-direction: column;
+  padding: 50px;
+  gap: 40px;
+`;
+
+const LoadingSection = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
 `;
 
 function App() {
@@ -78,7 +98,30 @@ function App() {
     return (
       <ThemeProvider theme={darkTheme}>
         <SkeletonTheme baseColor="#202020" highlightColor="#444">
-          <div>Loading...</div>
+          <LoadingContainer>
+            <LoadingSection>
+              <Skeleton height={60} width={200} />
+              <Skeleton height={40} width="100%" count={3} />
+            </LoadingSection>
+            <LoadingSection>
+              <Skeleton height={40} width={150} />
+              <Skeleton height={100} width="100%" />
+            </LoadingSection>
+            <LoadingSection>
+              <Skeleton height={40} width={150} />
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                  gap: "20px",
+                }}
+              >
+                <Skeleton height={200} />
+                <Skeleton height={200} />
+                <Skeleton height={200} />
+              </div>
+            </LoadingSection>
+          </LoadingContainer>
         </SkeletonTheme>
       </ThemeProvider>
     );
